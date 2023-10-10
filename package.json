@@ -1,0 +1,57 @@
+{
+  "name": "@fgiova/aws-signature",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.ts'",
+    "test": "tap",
+    "test:debug": "tap -T -O"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fgiova/aws-signature.git"
+  },
+  "author": "Francesco Giovannini <fgiova@fgiova.com>",
+  "license": "MIT",
+  "keywords": [
+    "aws",
+    "auth",
+    "authentication",
+    "aws-auth",
+    "aws-authentication",
+    "aws-signature",
+    "worker-threads"
+  ],
+  "tap": {
+    "show-full-coverage": true
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.31.17",
+    "env-schema": "^5.2.0",
+    "lru-cache": "^10.0.1",
+    "piscina": "^4.1.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^18.17.1",
+    "@types/tap": "latest",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "conventional-changelog-conventionalcommits": "^6.1.0",
+    "eslint": "^8.47.0",
+    "eslint-plugin-import": "^2.28.1",
+    "semantic-release": "^21.0.9",
+    "tap": "^18.4.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
