@@ -47,7 +47,6 @@ export const EVENT_ALGORITHM_IDENTIFIER = "AWS4-HMAC-SHA256-PAYLOAD";
 
 export const UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
-export const MAX_CACHE_SIZE = 50;
 export const KEY_TYPE_IDENTIFIER = "aws4_request";
 
 export const MAX_PRESIGNED_TTL = 60 * 60 * 24 * 7;

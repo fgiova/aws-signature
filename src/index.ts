@@ -12,7 +12,7 @@ const runEnv = {
 /* c8 ignore end */
 
 const keyCache = new LRUCache<string, Buffer>({
-	max: 100,
+	max: 50,
 	ttl: 1000 * 60 * 60 * 24
 });
 

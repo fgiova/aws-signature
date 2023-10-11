@@ -3,7 +3,7 @@ import {getPayloadHash} from "./getPayloadHash";
 import {getCanonicalQuery} from "./getCanonicalQuery";
 
 function getCanonicalPath({ path }: HttpRequest, isS3: boolean) {
-	if (isS3) {
+	if (!isS3) {
 		// Non-S3 services, we normalize the path and then double URI encode it.
 		// Ref: "Remove Dot Segments" https://datatracker.ietf.org/doc/html/rfc3986#section-5.2.4
 		const normalizedPathSegments = [];

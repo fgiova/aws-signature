@@ -14,6 +14,7 @@ export function formatDate (now = new Date()) {
 	};
 }
 
+/* c8 ignore next 3 */
 function  hexEncode (c: string) {
 	return `{%${c.charCodeAt(0).toString(16).toUpperCase()}`;
 }
@@ -25,15 +26,8 @@ export function isArrayBuffer(arg: any): arg is ArrayBuffer {
 	return (typeof ArrayBuffer === "function" && arg instanceof ArrayBuffer) ||
 	Object.prototype.toString.call(arg) === "[object ArrayBuffer]";
 }
-export function fromString (input: string, encoding: BufferEncoding = "utf8") {
-	if (typeof input !== "string") {
-		throw new TypeError(`The "input" argument must be of type string. Received type ${typeof input} (${input})`);
-	}
-
-	return Buffer.from(input, encoding);
-}
 export function fromUtf8 (input: string) {
-	const buf = fromString(input, "utf8");
+	const buf =  Buffer.from(input, "utf8");
 	return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength / Uint8Array.BYTES_PER_ELEMENT);
 }
 export function toUint8Array (data: string | ArrayBuffer | ArrayBufferView): Uint8Array {

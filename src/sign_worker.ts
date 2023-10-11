@@ -19,13 +19,6 @@ const config = envSchema<Static<typeof ConfigSchema>>({
 	schema: ConfigSchema
 });
 
-function hmac(key: string | Buffer, str: string) {
-	return crypto
-		.createHmac("sha256", key)
-		.update(str)
-		.digest("hex");
-}
-
 export function generateKey({secret = config.AWS_SECRET_ACCESS_KEY, region = config.AWS_REGION, service, date = new Date()}: {secret?: string, region?: string, service: string, date?: Date}) {
 	const {shortDate} = formatDate(date);
 	let key: string | Buffer = `AWS4${secret}`;
@@ -43,7 +36,6 @@ function getSignatureSubject( longDate: string, scope: string, canonicalRequest:
 ${longDate}
 ${scope}
 ${crypto.createHash("sha256").update(toUint8Array(canonicalRequest)).digest("hex")}`;
-
 }
 
 function authSignature(
@@ -52,7 +44,10 @@ function authSignature(
 	scope: string,
 	canonicalRequest: string) {
 	const subject = getSignatureSubject(longDate, scope, canonicalRequest);
-	return hmac(key, subject)
+	return crypto
+		.createHmac("sha256", key)
+		.update(subject)
+		.digest("hex");
 }
 
 function createScope (shortDate: string, service: string, region: string) {
@@ -60,12 +55,11 @@ function createScope (shortDate: string, service: string, region: string) {
 }
 
 export function signRequest(
-	{request, service, region, key, date = new Date()}: {request: HttpRequest, service: string, region?: string, key: Buffer, date: Date}
+	{request, service, region = config.AWS_REGION, key, date = new Date()}: {request: HttpRequest, service: string, region?: string, key: Buffer, date: Date}
 ) {
-	region = region || config.AWS_REGION;
 	const {shortDate, longDate} = formatDate(date);
 	request.headers[AMZ_DATE_HEADER] = longDate;
-	request.headers[SHA256_HEADER] =  getPayloadHash(request)
+	request.headers[SHA256_HEADER] = getPayloadHash(request)
 	const scope = createScope(shortDate, service, region);
 	const canonicalHeaders = getCanonicalHeaders(request);
 	const canonicalRequest = createCanonicalRequest(request, canonicalHeaders);
