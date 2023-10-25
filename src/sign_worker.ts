@@ -62,7 +62,7 @@ export function signRequest(
 	request.headers[SHA256_HEADER] = getPayloadHash(request)
 	const scope = createScope(shortDate, service, region);
 	const canonicalHeaders = getCanonicalHeaders(request);
-	const canonicalRequest = createCanonicalRequest(request, canonicalHeaders);
+	const canonicalRequest = createCanonicalRequest(request, canonicalHeaders, service.toLowerCase() === "s3");
 	const signature = authSignature(
 		key,
 		longDate,

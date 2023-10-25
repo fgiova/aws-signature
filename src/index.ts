@@ -46,3 +46,4 @@ export async function signRequest (request: HttpRequest, service: string, region
 	}
 	return await signRequestWorker.run({request, service, region, key, date}) as HttpRequest;
 }
+export type {HttpRequest} from "./aws/utils";
