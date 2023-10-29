@@ -16,9 +16,10 @@ npm i @fgiova/aws-signature
 
 ### Usage
 ```js
-const { signRequest } = require("@fgiova/aws-signature");
+const { Signer } = require("@fgiova/aws-signature");
 
-const signature = signRequest({
+const signer = new Signer();
+const signature = signer.request({
 			method: "POST",
 			path: "/",
 			headers: {
@@ -26,11 +27,16 @@ const signature = signRequest({
 			},
 			body: "Action=SendMessage&MessageBody=test&Version=2012-11-05",
 		}, "sqs");
+
+// To destroy the thread pool 
+signer.destroy();
 ```
 
 ### API
 ```js
-signRequest(request: Request, service: string, region?: string, date?: Date): string
+Signer(options?: SignerOptions)
+Signer.request(request: Request, service: string, region?: string, date?: Date): string
+Signer.destroy(): Promise<void>
 ```
 #### Environment variables
 * `AWS_ACCESS_KEY_ID` - The AWS access key ID to sign the request with.
@@ -38,6 +44,13 @@ signRequest(request: Request, service: string, region?: string, date?: Date): st
 * `AWS_REGION` - The AWS region to sign the request for
 
 #### Parameters
+* `SignerOptions` - The options for the signer. It can have the following properties:
+    * `minThreads` - Sets the minimum number of threads that are always running for this thread pool. The default is based on the number of available CPUs.
+    * `maxThreads` - Sets the maximum number of threads that can be running for this thread pool. The default is based on the number of available CPUs.
+    * `idleTimeout` -  A timeout in milliseconds that specifies how long a Worker is allowed to be idle, i.e. not handling any tasks, before it is shut down. By default, this is immediate.
+    * `maxQueueSize` - The maximum number of tasks that may be scheduled to run, but not yet running due to lack of available threads, at a given time. By default, there is no limit. The special value 'auto' may be used to have Piscina calculate the maximum as the square of maxThreads.
+    * `concurrentTasksPerWorker` - Specifies how many tasks can share a single Worker thread simultaneously. The default is 1. This generally only makes sense to specify if there is some kind of asynchronous component to the task. Keep in mind that Worker threads are generally not built for handling I/O in parallel.
+    * `resourceLimits` - See [Node.js new Worker options](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options)
 * `request` - The request to sign. It can be a string, a buffer, or an object with the following properties:
     * `method` - The HTTP method of the request.
     * `path` - The path of the request.
@@ -49,7 +62,7 @@ signRequest(request: Request, service: string, region?: string, date?: Date): st
 * `date` - The date to sign the request for. If not specified, the date will be now
 
 #### Returns
-The signature of the request, as a string.
+`Signer.request` - The signature of the request, as a string.
 
 ## License
 Licensed under [MIT](./LICENSE).
