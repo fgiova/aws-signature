@@ -66,3 +66,13 @@ Signer.destroy(): Promise<void>
 
 ## License
 Licensed under [MIT](./LICENSE).
+
+### Benchmark
+I have made a simple benchmark using [Benchmark.js](https://benchmarkjs.com/), comparing this module with official [@smithy/signature-v4](https://www.npmjs.com/package/@smithy/signature-v4) module. <br/>
+The benchmark suite is available [here](./benchmark/benchmark.js). <br/>
+The benchmark results on my MacBook M1 are: <br/>
+
+| Module                |                  |          |
+|-----------------------|------------------|----------|
+| @fgiova/aws-signature | 240,981 ops/sec  | ±47.91%  |
+| @smithy/signature-v4  | 62,992 ops/sec   | ±61.30%  |

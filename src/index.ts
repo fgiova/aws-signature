@@ -23,7 +23,7 @@ export type SignerOptions = {
 	minThreads?: number;
 	maxThreads?: number;
 	idleTimeout?: number;
-	maxQueue?: number | 'auto';
+	maxQueue?: number | "auto";
 	concurrentTasksPerWorker?: number;
 	resourceLimits?: ResourceLimits;
 }
@@ -37,7 +37,7 @@ export class Signer {
 			/* istanbul ignore next */
 			return 1;
 		}
-	})()
+	})();
 	constructor (options: SignerOptions= {}) {
 		const { minThreads, maxThreads, idleTimeout, maxQueue, concurrentTasksPerWorker, resourceLimits } = options;
 

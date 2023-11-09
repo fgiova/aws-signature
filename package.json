@@ -8,6 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc",
+    "benchmark": "npm build && node --max-old-space-size=4096 benchmark/index.js",
     "lint": "eslint 'src/**/*.ts'",
     "test": "tap",
     "test:debug": "tap -T -O"
@@ -40,14 +41,20 @@
     "piscina": "^4.1.0"
   },
   "devDependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@smithy/protocol-http": "^3.0.8",
+    "@smithy/signature-v4": "^2.0.12",
     "@types/node": "^18.17.1",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
+    "benchmark": "^2.1.4",
     "conventional-changelog-conventionalcommits": "^6.1.0",
     "eslint": "^8.47.0",
     "eslint-plugin-import": "^2.28.1",
+    "microtime": "^3.1.1",
+    "restify": "^11.1.0",
     "semantic-release": "^21.0.9",
     "tap": "^18.5.2",
     "ts-node": "^10.9.1",

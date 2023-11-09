@@ -6,7 +6,7 @@ export type HttpRequest = {
 	headers?: Record<string, string>;
 	body?: string | ArrayBuffer | ArrayBufferView | ReadableStream<Uint8Array> | FormData;
 }
-export function formatDate (now = new Date()) {
+export function formatDate (now: Date) {
 	const longDate = now.toISOString().replace(/\.\d{3}Z$/, "Z").replace(/[\-:]/g, "");
 	return {
 		longDate,
