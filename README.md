@@ -3,6 +3,8 @@
 [![NPM version](https://img.shields.io/npm/v/@fgiova/aws-signature.svg?style=flat)](https://www.npmjs.com/package/@fgiova/aws-signature)
 ![CI workflow](https://github.com/fgiova/aws-signature/actions/workflows/node.js.yml/badge.svg)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
+[![Maintainability](https://api.codeclimate.com/v1/badges/902c1b6652c3c67c6a65/maintainability)](https://codeclimate.com/github/fgiova/aws-signature/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/902c1b6652c3c67c6a65/test_coverage)](https://codeclimate.com/github/fgiova/aws-signature/test_coverage)
 
 ## Description
 This module makes it easy to sign AWS requests with the Signature V4 algorithm, using a simple interface.<br/>

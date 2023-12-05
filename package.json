@@ -11,7 +11,8 @@
     "benchmark": "npm build && node --max-old-space-size=4096 benchmark/index.js",
     "lint": "eslint 'src/**/*.ts'",
     "test": "tap",
-    "test:debug": "tap -T -O"
+    "test:debug": "tap -T -O",
+    "test:coverage": "tap --coverage-report=lcovonly --coverage-report=text"
   },
   "repository": {
     "type": "git",
