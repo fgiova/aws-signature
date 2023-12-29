@@ -34,11 +34,33 @@ const signature = signer.request({
 signer.destroy();
 ```
 
+### SignerSingleton
+```js
+const { SignerSingleton } = require("@fgiova/aws-signature");
+
+const signer = SignerSingleton.getSigner();
+const signature = signer.request({
+  method: "POST",
+  path: "/",
+  headers: {
+    host: "foo.us-bar-1.amazonaws.com",
+  },
+  body: "Action=SendMessage&MessageBody=test&Version=2012-11-05",
+}, "sqs");
+
+// Get same instance of Signer
+const newSigner = SignerSingleton.getSigner();
+
+// To destroy the thread pool 
+signer.destroy();
+```
+
 ### API
 ```js
 Signer(options?: SignerOptions)
 Signer.request(request: Request, service: string, region?: string, date?: Date): string
 Signer.destroy(): Promise<void>
+SignerSingleton.getSigner(options?: SignerOptions): Signer
 ```
 #### Environment variables
 * `AWS_ACCESS_KEY_ID` - The AWS access key ID to sign the request with.
