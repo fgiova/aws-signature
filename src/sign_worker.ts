@@ -1,4 +1,3 @@
-// import {Worker, isMainThread, parentPort } from "worker_threads";
 import * as crypto from "node:crypto";
 import {envSchema} from "env-schema";
 import {Type, Static} from "@sinclair/typebox";
@@ -9,11 +8,11 @@ import {getCanonicalHeaderList, getCanonicalHeaders} from "./aws/getCanonicalHea
 import {getPayloadHash} from "./aws/getPayloadHash";
 import {Buffer} from "node:buffer";
 
-const ConfigSchema = Type.Strict(Type.Object({
+const ConfigSchema = Type.Object({
 	AWS_ACCESS_KEY_ID: Type.String(),
 	AWS_SECRET_ACCESS_KEY: Type.String(),
 	AWS_REGION: Type.Optional(Type.String()),
-}));
+});
 
 const config = envSchema<Static<typeof ConfigSchema>>({
 	schema: ConfigSchema
@@ -59,7 +58,7 @@ export function signRequest(
 ) {
 	const {shortDate, longDate} = formatDate(date);
 	request.headers[AMZ_DATE_HEADER] = longDate;
-	request.headers[SHA256_HEADER] = getPayloadHash(request)
+	request.headers[SHA256_HEADER] = getPayloadHash(request);
 	const scope = createScope(shortDate, service, region);
 	const canonicalHeaders = getCanonicalHeaders(request);
 	const canonicalRequest = createCanonicalRequest(request, canonicalHeaders, service.toLowerCase() === "s3");
@@ -68,6 +67,7 @@ export function signRequest(
 		longDate,
 		scope,
 		canonicalRequest);
+	// eslint-disable-next-line @typescript-eslint/dot-notation
 	request.headers["Authorization"] = `${ALGORITHM_IDENTIFIER} Credential=${config.AWS_ACCESS_KEY_ID}/${scope}, SignedHeaders=${getCanonicalHeaderList(canonicalHeaders)}, Signature=${signature}`;
 	return request;
 }

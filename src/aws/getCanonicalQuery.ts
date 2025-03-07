@@ -1,7 +1,7 @@
 import { SIGNATURE_HEADER } from "./constants";
 import {escapeUri, HttpRequest} from "./utils";
 export function getCanonicalQuery ({ query = {} }: HttpRequest) {
-	const keys: Array<string> = [];
+	const keys: string[] = [];
 	const serialized: Record<string, string> = {};
 	for (const key of Object.keys(query).sort()) {
 		if (key.toLowerCase() === SIGNATURE_HEADER) {
@@ -13,10 +13,10 @@ export function getCanonicalQuery ({ query = {} }: HttpRequest) {
 		if (typeof value === "string") {
 			serialized[key] = `${escapeUri(key)}=${escapeUri(value)}`;
 		} else if (Array.isArray(value)) {
-			serialized[key] = (value as Array<string>)
+			serialized[key] = (value as string[])
 				.slice(0)
 				.reduce(
-					(encoded: Array<string>, value: string) => encoded.concat([`${escapeUri(key)}=${escapeUri(value)}`]),
+					(encoded: string[], value: string) => encoded.concat([`${escapeUri(key)}=${escapeUri(value)}`]),
 					[]
 				)
 				.sort()
