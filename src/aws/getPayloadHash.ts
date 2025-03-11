@@ -8,9 +8,11 @@ import {createHash} from "crypto";
 export function getPayloadHash(
 	{ headers, body }: HttpRequest,
 ){
-	for (const headerName of Object.keys(headers)) {
-		if (headerName.toLowerCase() === SHA256_HEADER) {
-			return headers[headerName];
+	if(headers) {
+		for (const headerName of Object.keys(headers)) {
+			if (headerName.toLowerCase() === SHA256_HEADER) {
+				return headers[headerName];
+			}
 		}
 	}
 

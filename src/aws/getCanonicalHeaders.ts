@@ -10,6 +10,10 @@ export function getCanonicalHeaders (
 	signableHeaders?: Set<string>
 ) {
 	const canonical: Record<string, string> = {};
+	/* c8 ignore next 3 */
+	if(!headers) {
+		return canonical;
+	}
 	for (const headerName of Object.keys(headers).sort()) {
 		if (headers[headerName] == undefined) {
 			continue;

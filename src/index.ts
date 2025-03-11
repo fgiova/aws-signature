@@ -82,7 +82,7 @@ export class Signer {
 export class SignerSingleton {
 	private static signer: Signer;
 	constructor() {
-		throw new Error('Use SignerSingleton.getSigner()');
+		throw new Error("Use SignerSingleton.getSigner()");
 	}
 	static getSigner(options?: SignerOptions) {
 		if(!SignerSingleton.signer){
