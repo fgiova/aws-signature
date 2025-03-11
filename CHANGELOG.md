@@ -1,3 +1,10 @@
+# [3.0.0](https://github.com/fgiova/aws-signature/compare/2.1.0...3.0.0) (2025-03-11)
+
+
+### Features
+
+* Add ESM export ([043cc22](https://github.com/fgiova/aws-signature/commit/043cc227024c6644caf582eec2818b1b86da29cd))
+
 # [2.1.0](https://github.com/fgiova/aws-signature/compare/2.0.0...2.1.0) (2023-12-29)
 
 
