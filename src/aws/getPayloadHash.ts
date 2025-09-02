@@ -1,14 +1,12 @@
+import { createHash } from "node:crypto";
 import { SHA256_HEADER, UNSIGNED_PAYLOAD } from "./constants";
-import {HttpRequest, isArrayBuffer, toUint8Array} from "./utils";
-import {createHash} from "crypto";
+import { type HttpRequest, isArrayBuffer, toUint8Array } from "./utils";
 
 /**
  * @private
  */
-export function getPayloadHash(
-	{ headers, body }: HttpRequest,
-){
-	if(headers) {
+export function getPayloadHash({ headers, body }: HttpRequest) {
+	if (headers) {
 		for (const headerName of Object.keys(headers)) {
 			if (headerName.toLowerCase() === SHA256_HEADER) {
 				return headers[headerName];
@@ -16,9 +14,13 @@ export function getPayloadHash(
 		}
 	}
 
-	if (body == undefined) {
+	if (body === undefined) {
 		return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	} else if (typeof body === "string" || ArrayBuffer.isView(body) || isArrayBuffer(body)) {
+	} else if (
+		typeof body === "string" ||
+		ArrayBuffer.isView(body) ||
+		isArrayBuffer(body)
+	) {
 		return createHash("sha256").update(toUint8Array(body)).digest("hex");
 	}
 

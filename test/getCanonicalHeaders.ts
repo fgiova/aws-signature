@@ -1,7 +1,6 @@
 import { test } from "tap";
-import {getCanonicalHeaders} from "../src/aws/getCanonicalHeaders";
-import {ALWAYS_UNSIGNABLE_HEADERS} from "../src/aws/constants";
-
+import { ALWAYS_UNSIGNABLE_HEADERS } from "../src/aws/constants";
+import { getCanonicalHeaders } from "../src/aws/getCanonicalHeaders";
 
 test("getCanonicalHeaders", async (t) => {
 	t.beforeEach(async (t) => {
@@ -11,19 +10,19 @@ test("getCanonicalHeaders", async (t) => {
 			headers: {
 				"x-amz-user-agent": "aws-sdk-js-v3",
 				host: "foo.us-east-1.amazonaws.com",
-			}
-		}
+			},
+		};
 		t.context = {
-			requestData
+			requestData,
 		};
 	});
 	await t.test("should downcase all headers", async (t) => {
-		const {requestData} = t.context;
+		const { requestData } = t.context;
 		requestData.headers = {
 			fOo: "bar",
 			BaZ: "QUUX",
-			HoSt: "foo.us-east-1.amazonaws.com"
-		}
+			HoSt: "foo.us-east-1.amazonaws.com",
+		};
 		const canonicalHeaders = getCanonicalHeaders(requestData);
 		t.same(canonicalHeaders, {
 			foo: "bar",
@@ -32,11 +31,11 @@ test("getCanonicalHeaders", async (t) => {
 		});
 	});
 	await t.test("should remove all unsignable headers", async (t) => {
-		const {requestData} = t.context;
+		const { requestData } = t.context;
 		requestData.headers = {
 			...requestData.headers,
 			foo: "bar",
-		}
+		};
 		for (const headerName of Object.keys(ALWAYS_UNSIGNABLE_HEADERS)) {
 			requestData.headers[headerName] = "baz";
 		}
@@ -48,12 +47,12 @@ test("getCanonicalHeaders", async (t) => {
 		});
 	});
 	await t.test("should ignore headers with undefined values", async (t) => {
-		const {requestData} = t.context;
+		const { requestData } = t.context;
 		requestData.headers = {
 			...requestData.headers,
 			foo: undefined,
 			bar: null,
-		}
+		};
 		const canonicalHeaders = getCanonicalHeaders(requestData);
 		t.same(canonicalHeaders, {
 			"x-amz-user-agent": "aws-sdk-js-v3",
@@ -61,31 +60,38 @@ test("getCanonicalHeaders", async (t) => {
 		});
 	});
 	await t.test("should ignore headers with undefined values", async (t) => {
-		const {requestData} = t.context;
+		const { requestData } = t.context;
 		requestData.headers = {
 			...requestData.headers,
 			foo: "bar",
 			"user-agent": "foo-user",
-		}
+		};
 		const canonicalHeaders = getCanonicalHeaders(requestData, new Set(["foo"]));
 		t.same(canonicalHeaders, {
 			host: "foo.us-east-1.amazonaws.com",
-			"x-amz-user-agent": "aws-sdk-js-v3"
-		});
-	});
-	await t.test("should allow specifying custom signable headers that override unsignable ones", async (t) => {
-		const {requestData} = t.context;
-		requestData.headers = {
-			...requestData.headers,
-			foo: "bar",
-			"user-agent": "foo-user",
-		}
-		const canonicalHeaders = getCanonicalHeaders(requestData, new Set(["foo"]), new Set(["foo", "user-agent"]));
-		t.same(canonicalHeaders, {
-			host: "foo.us-east-1.amazonaws.com",
 			"x-amz-user-agent": "aws-sdk-js-v3",
-			foo: "bar",
-			"user-agent": "foo-user",
 		});
 	});
+	await t.test(
+		"should allow specifying custom signable headers that override unsignable ones",
+		async (t) => {
+			const { requestData } = t.context;
+			requestData.headers = {
+				...requestData.headers,
+				foo: "bar",
+				"user-agent": "foo-user",
+			};
+			const canonicalHeaders = getCanonicalHeaders(
+				requestData,
+				new Set(["foo"]),
+				new Set(["foo", "user-agent"]),
+			);
+			t.same(canonicalHeaders, {
+				host: "foo.us-east-1.amazonaws.com",
+				"x-amz-user-agent": "aws-sdk-js-v3",
+				foo: "bar",
+				"user-agent": "foo-user",
+			});
+		},
+	);
 });
