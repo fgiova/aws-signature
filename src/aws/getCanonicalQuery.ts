@@ -1,6 +1,6 @@
 import { SIGNATURE_HEADER } from "./constants";
-import {escapeUri, HttpRequest} from "./utils";
-export function getCanonicalQuery ({ query = {} }: HttpRequest) {
+import { escapeUri, type HttpRequest } from "./utils";
+export function getCanonicalQuery({ query = {} }: HttpRequest) {
 	const keys: string[] = [];
 	const serialized: Record<string, string> = {};
 	for (const key of Object.keys(query).sort()) {
@@ -16,8 +16,9 @@ export function getCanonicalQuery ({ query = {} }: HttpRequest) {
 			serialized[key] = (value as string[])
 				.slice(0)
 				.reduce(
-					(encoded: string[], value: string) => encoded.concat([`${escapeUri(key)}=${escapeUri(value)}`]),
-					[]
+					(encoded: string[], value: string) =>
+						encoded.concat([`${escapeUri(key)}=${escapeUri(value)}`]),
+					[],
 				)
 				.sort()
 				.join("&");

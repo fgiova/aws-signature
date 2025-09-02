@@ -1,7 +1,9 @@
 import { test } from "tap";
+
 process.env.AWS_ACCESS_KEY_ID = "foo";
 process.env.AWS_SECRET_ACCESS_KEY = "bar";
-import { generateKey, signRequest} from "../src/sign_worker";
+
+import { generateKey, signRequest } from "../src/sign_worker";
 
 test("Sign Request", async (t) => {
 	t.beforeEach(async (t) => {
@@ -10,12 +12,11 @@ test("Sign Request", async (t) => {
 			path: "/",
 			headers: {
 				host: "foo.us-bar-1.amazonaws.com",
-			}
-		}
-		t.context = {
-			requestData
+			},
 		};
-
+		t.context = {
+			requestData,
+		};
 	});
 
 	await t.test("should sign request without body", async (t) => {
@@ -23,26 +24,29 @@ test("Sign Request", async (t) => {
 		const key = generateKey({
 			service: "foo",
 			region: "us-bar-1",
-			date
+			date,
 		});
 		const request = signRequest({
 			request: t.context.requestData,
 			service: "foo",
 			region: "us-bar-1",
 			key,
-			date
+			date,
 		});
 
-		t.same(request.headers["Authorization"], "AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=1e3b24fcfd7655c0c245d99ba7b6b5ca6174eab903ebfbda09ce457af062ad30");
+		t.same(
+			// biome-ignore lint/complexity/useLiteralKeys: leave as is
+			request.headers?.["Authorization"],
+			"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=1e3b24fcfd7655c0c245d99ba7b6b5ca6174eab903ebfbda09ce457af062ad30",
+		);
 	});
-
 
 	await t.test("should sign requests with string bodies", async (t) => {
 		const date = new Date("2000-01-01T00:00:00.000Z");
 		const key = generateKey({
 			service: "foo",
 			region: "us-bar-1",
-			date
+			date,
 		});
 		const request = signRequest({
 			request: {
@@ -52,11 +56,13 @@ test("Sign Request", async (t) => {
 			service: "foo",
 			region: "us-bar-1",
 			key,
-			date
+			date,
 		});
 
-		t.same(request.headers["Authorization"], "AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=cf22a0befff359388f136b158f0b1b43db7b18d2ca65ce4112bc88a16815c4b6");
+		t.same(
+			// biome-ignore lint/complexity/useLiteralKeys: leave as is
+			request.headers?.["Authorization"],
+			"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=cf22a0befff359388f136b158f0b1b43db7b18d2ca65ce4112bc88a16815c4b6",
+		);
 	});
-
-
 });

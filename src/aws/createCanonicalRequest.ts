@@ -1,6 +1,6 @@
-import {HttpRequest} from "./utils";
-import {getPayloadHash} from "./getPayloadHash";
-import {getCanonicalQuery} from "./getCanonicalQuery";
+import { getCanonicalQuery } from "./getCanonicalQuery";
+import { getPayloadHash } from "./getPayloadHash";
+import type { HttpRequest } from "./utils";
 
 function getCanonicalPath({ path }: HttpRequest, isS3: boolean) {
 	if (!isS3) {
@@ -31,7 +31,11 @@ function getCanonicalPath({ path }: HttpRequest, isS3: boolean) {
 	return path;
 }
 
-export function createCanonicalRequest(request: HttpRequest, canonicalHeaders: Record<string, string>, isS3= false) {
+export function createCanonicalRequest(
+	request: HttpRequest,
+	canonicalHeaders: Record<string, string>,
+	isS3 = false,
+) {
 	const sortedHeaders = Object.keys(canonicalHeaders).sort();
 	return `${request.method}
 ${getCanonicalPath(request, isS3)}
