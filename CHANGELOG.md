@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/fgiova/aws-signature/compare/3.1.0...3.1.1) (2025-09-03)
+
+
+### Bug Fixes
+
+* fix cjs exports ([83be20e](https://github.com/fgiova/aws-signature/commit/83be20e18caeed0a70511b6c7c6f827da9761b66))
+
 # [3.1.0](https://github.com/fgiova/aws-signature/compare/3.0.0...3.1.0) (2025-09-02)
 
 
