@@ -3,6 +3,7 @@
 [![NPM version](https://img.shields.io/npm/v/@fgiova/aws-signature.svg?style=flat)](https://www.npmjs.com/package/@fgiova/aws-signature)
 ![CI workflow](https://github.com/fgiova/aws-signature/actions/workflows/node.js.yml/badge.svg)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
+[![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev)
 [![Maintainability](https://qlty.sh/gh/fgiova/projects/aws-signature/maintainability.svg)](https://qlty.sh/gh/fgiova/projects/aws-signature)
 [![Code Coverage](https://qlty.sh/gh/fgiova/projects/aws-signature/coverage.svg)](https://qlty.sh/gh/fgiova/projects/aws-signature)
 
