@@ -9,8 +9,9 @@ export type { HttpRequest } from "./aws/utils";
 
 /* c8 ignore start */
 const isTS = path.resolve(__filename).endsWith(".ts");
+const isMjs = path.resolve(__filename).endsWith(".mjs");
 const runEnv = {
-	ext: isTS ? "ts" : "js",
+	ext: isTS ? "ts" : isMjs ? "mjs" : "js",
 	execArgv: isTS ? ["-r", "ts-node/register"] : undefined,
 };
 /* c8 ignore end */
