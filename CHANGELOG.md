@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/fgiova/aws-signature/compare/3.1.1...3.1.2) (2025-09-03)
+
+
+### Bug Fixes
+
+* fix mjs worker ([2a40544](https://github.com/fgiova/aws-signature/commit/2a40544be65c141e9f17f79a66d815a283c1ca5d))
+
 ## [3.1.1](https://github.com/fgiova/aws-signature/compare/3.1.0...3.1.1) (2025-09-03)
 
 
