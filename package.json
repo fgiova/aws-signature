@@ -19,8 +19,8 @@
 		"dist"
 	],
 	"scripts": {
-		"clean": "rimraf dist",
-		"preBuild": "npm run clean",
+		"clean": "rm -rf dist",
+		"prebuild": "npm run clean",
 		"build": "esmBuilder",
 		"lint": "biome ci ./src ./test",
 		"fix": "biome check --write ./src ./test",
@@ -46,7 +46,7 @@
 		"worker-threads"
 	],
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=20.14.1"
 	},
 	"tap": {
 		"show-full-coverage": true
