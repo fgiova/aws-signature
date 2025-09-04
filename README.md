@@ -76,6 +76,11 @@ SignerSingleton.getSigner(options?: SignerOptions): Signer
     * `maxQueueSize` - The maximum number of tasks that may be scheduled to run, but not yet running due to lack of available threads, at a given time. By default, there is no limit. The special value 'auto' may be used to have Piscina calculate the maximum as the square of maxThreads.
     * `concurrentTasksPerWorker` - Specifies how many tasks can share a single Worker thread simultaneously. The default is 1. This generally only makes sense to specify if there is some kind of asynchronous component to the task. Keep in mind that Worker threads are generally not built for handling I/O in parallel.
     * `resourceLimits` - See [Node.js new Worker options](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options)
+    * `credentials` - An object containing the AWS credentials to sign the request with. If not specified, the credentials will be extracted from the env variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. It can have the following properties:
+        * `accessKeyId` - The AWS access key ID to sign the request with.
+        * `secretAccessKey` - The AWS secret access key to sign the request with.
+        * `region` - The AWS region to sign the request for.
+    * `cacheSize` - The maximum number of signing keys to cache. This helps improve performance by avoiding recomputation of signing keys for repeated requests. If not specified, a default value will be used.
 * `request` - The request to sign. It can be a string, a buffer, or an object with the following properties:
     * `method` - The HTTP method of the request.
     * `path` - The path of the request.

@@ -1,7 +1,9 @@
 import { test } from "tap";
 
-process.env.AWS_ACCESS_KEY_ID = "foo";
-process.env.AWS_SECRET_ACCESS_KEY = "bar";
+const credentials = {
+	accessKeyId: "foo",
+	secretAccessKey: "bar",
+};
 
 import { generateKey, signRequest } from "../src/sign_worker";
 
@@ -23,13 +25,19 @@ test("Sign Request", async (t) => {
 		const date = new Date("2000-01-01T00:00:00.000Z");
 		const key = generateKey({
 			service: "foo",
-			region: "us-bar-1",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
 			date,
 		});
 		const request = signRequest({
 			request: t.context.requestData,
 			service: "foo",
-			region: "us-bar-1",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
 			key,
 			date,
 		});
@@ -45,7 +53,10 @@ test("Sign Request", async (t) => {
 		const date = new Date("2000-01-01T00:00:00.000Z");
 		const key = generateKey({
 			service: "foo",
-			region: "us-bar-1",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
 			date,
 		});
 		const request = signRequest({
@@ -54,7 +65,10 @@ test("Sign Request", async (t) => {
 				body: "It was the best of times, it was the worst of times",
 			},
 			service: "foo",
-			region: "us-bar-1",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
 			key,
 			date,
 		});
