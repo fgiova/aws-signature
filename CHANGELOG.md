@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/fgiova/aws-signature/compare/3.1.2...3.2.0) (2025-09-07)
+
+
+### Features
+
+* Add option on constructor for aws credentials ([9320882](https://github.com/fgiova/aws-signature/commit/9320882c54594239d926dc9398e36ab2420aede8))
+
 ## [3.1.2](https://github.com/fgiova/aws-signature/compare/3.1.1...3.1.2) (2025-09-03)
 
 
