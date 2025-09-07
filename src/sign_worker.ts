@@ -1,7 +1,5 @@
 import type { Buffer } from "node:buffer";
 import * as crypto from "node:crypto";
-import { type Static, Type } from "@sinclair/typebox";
-import { envSchema } from "env-schema";
 import {
 	ALGORITHM_IDENTIFIER,
 	AMZ_DATE_HEADER,
@@ -16,30 +14,29 @@ import {
 import { getPayloadHash } from "./aws/getPayloadHash";
 import { formatDate, type HttpRequest, toUint8Array } from "./aws/utils";
 
-const ConfigSchema = Type.Object({
-	AWS_ACCESS_KEY_ID: Type.String(),
-	AWS_SECRET_ACCESS_KEY: Type.String(),
-	AWS_REGION: Type.String({ default: "" }),
-});
-
-const config = envSchema<Static<typeof ConfigSchema>>({
-	schema: ConfigSchema,
-});
+type AwsCredentials = {
+	region: string;
+	accessKeyId: string;
+	secretAccessKey: string;
+};
 
 export function generateKey({
-	secret = config.AWS_SECRET_ACCESS_KEY,
-	region = config.AWS_REGION,
+	credentials,
 	service,
 	date = new Date(),
 }: {
-	secret?: string;
-	region?: string;
+	credentials: AwsCredentials;
 	service: string;
 	date?: Date;
 }) {
 	const { shortDate } = formatDate(date);
-	let key: string | Buffer = `AWS4${secret}`;
-	for (const signable of [shortDate, region, service, KEY_TYPE_IDENTIFIER]) {
+	let key: string | Buffer = `AWS4${credentials.secretAccessKey}`;
+	for (const signable of [
+		shortDate,
+		credentials.region,
+		service,
+		KEY_TYPE_IDENTIFIER,
+	]) {
 		key = crypto.createHmac("sha256", key).update(signable).digest();
 	}
 	return key as Buffer;
@@ -73,13 +70,13 @@ function createScope(shortDate: string, service: string, region: string) {
 export function signRequest({
 	request,
 	service,
-	region = config.AWS_REGION,
 	key,
+	credentials,
 	date = new Date(),
 }: {
 	request: HttpRequest;
 	service: string;
-	region?: string;
+	credentials: AwsCredentials;
 	key: Buffer;
 	date: Date;
 }) {
@@ -90,7 +87,7 @@ export function signRequest({
 	}
 	request.headers[AMZ_DATE_HEADER] = longDate;
 	request.headers[SHA256_HEADER] = getPayloadHash(request);
-	const scope = createScope(shortDate, service, region);
+	const scope = createScope(shortDate, service, credentials.region);
 	const canonicalHeaders = getCanonicalHeaders(request);
 	const canonicalRequest = createCanonicalRequest(
 		request,
@@ -101,6 +98,6 @@ export function signRequest({
 
 	// biome-ignore lint/complexity/useLiteralKeys: leave as is
 	request.headers["Authorization"] =
-		`${ALGORITHM_IDENTIFIER} Credential=${config.AWS_ACCESS_KEY_ID}/${scope}, SignedHeaders=${getCanonicalHeaderList(canonicalHeaders)}, Signature=${signature}`;
+		`${ALGORITHM_IDENTIFIER} Credential=${credentials.accessKeyId}/${scope}, SignedHeaders=${getCanonicalHeaderList(canonicalHeaders)}, Signature=${signature}`;
 	return request;
 }
