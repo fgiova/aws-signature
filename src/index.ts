@@ -18,11 +18,6 @@ const runEnv = {
 };
 /* c8 ignore end */
 
-const keyCache = new LRUCache<string, Buffer>({
-	max: 50,
-	ttl: 1000 * 60 * 60 * 24,
-});
-
 const ConfigSchema = Type.Object({
 	AWS_ACCESS_KEY_ID: Type.Optional(Type.String()),
 	AWS_SECRET_ACCESS_KEY: Type.Optional(Type.String()),
@@ -45,6 +40,7 @@ export type SignerOptions = {
 
 export class Signer {
 	private readonly worker: Piscina;
+	private readonly keyCache: LRUCache<string, Buffer>;
 	private readonly credentials: {
 		region: string;
 		accessKeyId: string;
@@ -86,6 +82,11 @@ export class Signer {
 			throw new Error("AWS credentials are required");
 		}
 
+		this.keyCache = new LRUCache<string, Buffer>({
+			max: 50,
+			ttl: 1000 * 60 * 60 * 24,
+		});
+
 		this.worker = new Piscina({
 			filename: path.resolve(__dirname, `./sign_worker.${runEnv.ext}`),
 			execArgv: runEnv.execArgv,
@@ -123,14 +124,14 @@ export class Signer {
 
 		const keyId = `${service}-${requestCredentials.region}`;
 
-		let key = keyCache.get(keyId);
+		let key = this.keyCache.get(keyId);
 		if (!key) {
 			key = (await this.worker.run({
 				credentials: requestCredentials,
 				service,
 				date,
 			})) as Buffer;
-			keyCache.set(keyId, key, {
+			this.keyCache.set(keyId, key, {
 				ttl: this.millsToNextDay(),
 			});
 		}
@@ -141,7 +142,8 @@ export class Signer {
 	}
 
 	async destroy() {
-		return this.worker.destroy();
+		this.keyCache.clear();
+		return this.worker.close({ force: true });
 	}
 }
 
@@ -155,5 +157,11 @@ export class SignerSingleton {
 			SignerSingleton.signer = new Signer(options);
 		}
 		return SignerSingleton.signer;
+	}
+	static async destroy() {
+		if (SignerSingleton.signer) {
+			await SignerSingleton.signer.destroy();
+			SignerSingleton.signer = undefined as unknown as Signer;
+		}
 	}
 }

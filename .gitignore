@@ -100,3 +100,4 @@ dist/
 !/.env.dev
 /.idea/
 /.tap/
+/.claude/
