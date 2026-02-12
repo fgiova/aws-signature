@@ -22,7 +22,7 @@ npm i @fgiova/aws-signature
 const { Signer } = require("@fgiova/aws-signature");
 
 const signer = new Signer();
-const signature = signer.request({
+const signedRequest = await signer.request({
 			method: "POST",
 			path: "/",
 			headers: {
@@ -31,8 +31,8 @@ const signature = signer.request({
 			body: "Action=SendMessage&MessageBody=test&Version=2012-11-05",
 		}, "sqs");
 
-// To destroy the thread pool 
-signer.destroy();
+// To destroy the thread pool
+await signer.destroy();
 ```
 
 ### SignerSingleton
@@ -40,7 +40,7 @@ signer.destroy();
 const { SignerSingleton } = require("@fgiova/aws-signature");
 
 const signer = SignerSingleton.getSigner();
-const signature = signer.request({
+const signedRequest = await signer.request({
   method: "POST",
   path: "/",
   headers: {
@@ -52,16 +52,17 @@ const signature = signer.request({
 // Get same instance of Signer
 const newSigner = SignerSingleton.getSigner();
 
-// To destroy the thread pool 
-signer.destroy();
+// To destroy the thread pool and release resources
+await SignerSingleton.destroy();
 ```
 
 ### API
 ```js
 Signer(options?: SignerOptions)
-Signer.request(request: Request, service: string, region?: string, date?: Date): string
+Signer.request(request: HttpRequest, service: string, region?: string, date?: Date): Promise<HttpRequest>
 Signer.destroy(): Promise<void>
 SignerSingleton.getSigner(options?: SignerOptions): Signer
+SignerSingleton.destroy(): Promise<void>
 ```
 #### Environment variables
 * `AWS_ACCESS_KEY_ID` - The AWS access key ID to sign the request with.
@@ -73,15 +74,14 @@ SignerSingleton.getSigner(options?: SignerOptions): Signer
     * `minThreads` - Sets the minimum number of threads that are always running for this thread pool. The default is based on the number of available CPUs.
     * `maxThreads` - Sets the maximum number of threads that can be running for this thread pool. The default is based on the number of available CPUs.
     * `idleTimeout` -  A timeout in milliseconds that specifies how long a Worker is allowed to be idle, i.e. not handling any tasks, before it is shut down. By default, this is immediate.
-    * `maxQueueSize` - The maximum number of tasks that may be scheduled to run, but not yet running due to lack of available threads, at a given time. By default, there is no limit. The special value 'auto' may be used to have Piscina calculate the maximum as the square of maxThreads.
+    * `maxQueue` - The maximum number of tasks that may be scheduled to run, but not yet running due to lack of available threads, at a given time. By default, there is no limit. The special value 'auto' may be used to have Piscina calculate the maximum as the square of maxThreads.
     * `concurrentTasksPerWorker` - Specifies how many tasks can share a single Worker thread simultaneously. The default is 1. This generally only makes sense to specify if there is some kind of asynchronous component to the task. Keep in mind that Worker threads are generally not built for handling I/O in parallel.
     * `resourceLimits` - See [Node.js new Worker options](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options)
     * `credentials` - An object containing the AWS credentials to sign the request with. If not specified, the credentials will be extracted from the env variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. It can have the following properties:
         * `accessKeyId` - The AWS access key ID to sign the request with.
         * `secretAccessKey` - The AWS secret access key to sign the request with.
         * `region` - The AWS region to sign the request for.
-    * `cacheSize` - The maximum number of signing keys to cache. This helps improve performance by avoiding recomputation of signing keys for repeated requests. If not specified, a default value will be used.
-* `request` - The request to sign. It can be a string, a buffer, or an object with the following properties:
+* `request` - The request to sign (`HttpRequest`). It is an object with the following properties:
     * `method` - The HTTP method of the request.
     * `path` - The path of the request.
     * `headers` - The headers of the request.
@@ -92,7 +92,7 @@ SignerSingleton.getSigner(options?: SignerOptions): Signer
 * `date` - The date to sign the request for. If not specified, the date will be now
 
 #### Returns
-`Signer.request` - The signature of the request, as a string.
+`Signer.request` - The signed request as an `HttpRequest` object, with authorization headers added.
 
 ## License
 Licensed under [MIT](./LICENSE).

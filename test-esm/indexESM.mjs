@@ -19,9 +19,9 @@ test("Sign Request Worker", async (t) => {
 	});
 
 	await t.test("should sign request without body", async (t) => {
+		const signer = new Signer();
 		try {
 			const date = new Date("2000-01-01T00:00:00.000Z");
-			const signer = new Signer();
 			const request = await signer.request(
 				t.context.requestData,
 				"foo",
@@ -34,6 +34,8 @@ test("Sign Request Worker", async (t) => {
 			);
 		} catch (error) {
 			console.log(error);
+		} finally {
+			await signer.destroy();
 		}
 	});
 
@@ -54,6 +56,7 @@ test("Sign Request Worker", async (t) => {
 			request.headers["Authorization"],
 			"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=cf22a0befff359388f136b158f0b1b43db7b18d2ca65ce4112bc88a16815c4b6",
 		);
+		await signer.destroy();
 	});
 
 	await t.test(
@@ -75,6 +78,7 @@ test("Sign Request Worker", async (t) => {
 				request.headers["Authorization"],
 				"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo-test-2/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=1becd5fd94ce1e82b68d98fa70a9c99b4b4668eec909cf2f41f482426ac44970",
 			);
+			await signer.destroy();
 		},
 	);
 
@@ -101,5 +105,6 @@ test("Sign Request Worker", async (t) => {
 		);
 		const sameSigner = SignerSingletonTwo.getSigner();
 		t.equal(signer, sameSigner);
+		await SignerSingleton.destroy();
 	});
 });
