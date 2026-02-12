@@ -40,7 +40,7 @@ jobs:
         run: npm run test:coverage
 
       - name: publish code coverage to code-climate (duh)
-        if: ${{ github.event_name == 'push' && matrix.node-version == 20 }} # Push coverage only once inside the matrix.
+        if: ${{ github.event_name == 'push' && matrix.node-version == 22 }} # Push coverage only once inside the matrix.
         uses: qltysh/qlty-action/coverage@v2
         with:
           token: ${{secrets.QLTY_COVERAGE_TOKEN}}
