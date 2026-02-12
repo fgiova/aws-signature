@@ -1,3 +1,10 @@
+# [4.0.0](https://github.com/fgiova/aws-signature/compare/3.2.0...4.0.0) (2026-02-12)
+
+
+### Features
+
+* add destroy methods and fix benchmark abort error ([6792a2a](https://github.com/fgiova/aws-signature/commit/6792a2ab8846bc00d4d0050cda0a637ea2e2851e))
+
 # [3.2.0](https://github.com/fgiova/aws-signature/compare/3.1.2...3.2.0) (2025-09-07)
 
 
