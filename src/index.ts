@@ -104,7 +104,7 @@ export class Signer {
 			concurrentTasksPerWorker,
 			resourceLimits,
 		};
-		this.maxTasksBeforeRecycle = maxTasksBeforeRecycle;
+		this.maxTasksBeforeRecycle = maxTasksBeforeRecycle ?? 250_000;
 		this.worker = new Piscina(this.piscinaOptions);
 	}
 

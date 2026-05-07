@@ -73,10 +73,13 @@ SignerSingleton.destroy(): Promise<void>
 * `SignerOptions` - The options for the signer. It can have the following properties:
     * `minThreads` - Sets the minimum number of threads that are always running for this thread pool. The default is based on the number of available CPUs.
     * `maxThreads` - Sets the maximum number of threads that can be running for this thread pool. The default is based on the number of available CPUs.
-    * `idleTimeout` -  A timeout in milliseconds that specifies how long a Worker is allowed to be idle, i.e. not handling any tasks, before it is shut down. By default, this is immediate.
+    * `idleTimeout` -  A timeout in milliseconds that specifies how long a Worker is allowed to be idle, i.e. not handling any tasks, before it is shut down. Default: `30000` (30 seconds). Set to `0` for immediate shutdown when idle.
     * `maxQueue` - The maximum number of tasks that may be scheduled to run, but not yet running due to lack of available threads, at a given time. By default, there is no limit. The special value 'auto' may be used to have Piscina calculate the maximum as the square of maxThreads.
     * `concurrentTasksPerWorker` - Specifies how many tasks can share a single Worker thread simultaneously. The default is 1. This generally only makes sense to specify if there is some kind of asynchronous component to the task. Keep in mind that Worker threads are generally not built for handling I/O in parallel.
     * `resourceLimits` - See [Node.js new Worker options](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options)
+    * `maxTasksBeforeRecycle` - Maximum number of completed tasks across the worker pool before the pool is recycled (gracefully drained and replaced). Mitigates V8 heap fragmentation and slow native handle leaks in long-running processes. Default: `250000`. Set to `0` or `undefined` to disable recycling.
+        * **Tuning guide** (always-on services): pick a value such that recycle fires every 15–60 minutes under expected sustained sign rate (`maxTasksBeforeRecycle / signsPerSecond = secondsBetweenRecycles`). For DynamoDB-intensive workloads (1k–10k signs/s per Signer instance) consider raising to `1_000_000`–`5_000_000` to avoid pool thrash.
+        * **Cost**: each recycle spawns a new pool while draining the old one (`force: false`). Brief double-memory window and ~14% throughput hit at low thresholds; cost amortizes as the threshold rises.
     * `credentials` - An object containing the AWS credentials to sign the request with. If not specified, the credentials will be extracted from the env variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. It can have the following properties:
         * `accessKeyId` - The AWS access key ID to sign the request with.
         * `secretAccessKey` - The AWS secret access key to sign the request with.
