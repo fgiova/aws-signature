@@ -1,3 +1,10 @@
+# [4.2.0](https://github.com/fgiova/aws-signature/compare/4.1.0...4.2.0) (2026-05-07)
+
+
+### Features
+
+* default maxTasksBeforeRecycle to 250000 ([430a01a](https://github.com/fgiova/aws-signature/commit/430a01acab7d7f1551bc021fccaf4a81ebf2cf3a))
+
 # [4.1.0](https://github.com/fgiova/aws-signature/compare/4.0.0...4.1.0) (2026-05-07)
 
 
