@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/fgiova/aws-signature/compare/4.0.0...4.1.0) (2026-05-07)
+
+
+### Features
+
+* reduce RSS under sustained load ([dc4eaec](https://github.com/fgiova/aws-signature/commit/dc4eaecd266329ad87cc5eaa00a8073b7c37c716))
+
 # [4.0.0](https://github.com/fgiova/aws-signature/compare/3.2.0...4.0.0) (2026-02-12)
 
 
