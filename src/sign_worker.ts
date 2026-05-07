@@ -79,25 +79,27 @@ export function signRequest({
 	credentials: AwsCredentials;
 	key: Buffer;
 	date: Date;
-}) {
+}): Record<string, string> {
 	const { shortDate, longDate } = formatDate(date);
-	/* c8 ignore next 3 */
-	if (!request.headers) {
-		request.headers = {};
-	}
-	request.headers[AMZ_DATE_HEADER] = longDate;
-	request.headers[SHA256_HEADER] = getPayloadHash(request);
+	const payloadHash = getPayloadHash(request);
+	const headers = {
+		...(request.headers ?? {}),
+		[AMZ_DATE_HEADER]: longDate,
+		[SHA256_HEADER]: payloadHash,
+	};
+	const requestWithHeaders = { ...request, headers };
 	const scope = createScope(shortDate, service, credentials.region);
-	const canonicalHeaders = getCanonicalHeaders(request);
+	const canonicalHeaders = getCanonicalHeaders(requestWithHeaders);
 	const canonicalRequest = createCanonicalRequest(
-		request,
+		requestWithHeaders,
 		canonicalHeaders,
 		service.toLowerCase() === "s3",
 	);
 	const signature = authSignature(key, longDate, scope, canonicalRequest);
 
-	// biome-ignore lint/complexity/useLiteralKeys: leave as is
-	request.headers["Authorization"] =
-		`${ALGORITHM_IDENTIFIER} Credential=${credentials.accessKeyId}/${scope}, SignedHeaders=${getCanonicalHeaderList(canonicalHeaders)}, Signature=${signature}`;
-	return request;
+	return {
+		[AMZ_DATE_HEADER]: longDate,
+		[SHA256_HEADER]: payloadHash,
+		Authorization: `${ALGORITHM_IDENTIFIER} Credential=${credentials.accessKeyId}/${scope}, SignedHeaders=${getCanonicalHeaderList(canonicalHeaders)}, Signature=${signature}`,
+	};
 }

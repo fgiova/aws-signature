@@ -36,16 +36,21 @@ export type SignerOptions = {
 	maxQueue?: number | "auto";
 	concurrentTasksPerWorker?: number;
 	resourceLimits?: ResourceLimits;
+	maxTasksBeforeRecycle?: number;
 };
 
 export class Signer {
-	private readonly worker: Piscina;
+	private worker: Piscina;
 	private readonly keyCache: LRUCache<string, Buffer>;
 	private readonly credentials: {
 		region: string;
 		accessKeyId: string;
 		secretAccessKey: string;
 	};
+	private readonly piscinaOptions: ConstructorParameters<typeof Piscina>[0];
+	private readonly maxTasksBeforeRecycle?: number;
+	private completedAtLastRecycle = 0;
+	private recycling?: Promise<void>;
 
 	cpuCount: number = (() => {
 		try {
@@ -64,6 +69,7 @@ export class Signer {
 			maxQueue,
 			concurrentTasksPerWorker,
 			resourceLimits,
+			maxTasksBeforeRecycle,
 			credentials: credentialsOptions,
 		} = options;
 
@@ -87,17 +93,38 @@ export class Signer {
 			ttl: 1000 * 60 * 60 * 24,
 		});
 
-		this.worker = new Piscina({
+		this.piscinaOptions = {
 			filename: path.resolve(__dirname, `./sign_worker.${runEnv.ext}`),
 			execArgv: runEnv.execArgv,
 			name: "generateKey",
 			minThreads: minThreads ?? Math.max(this.cpuCount / 2, 1),
 			maxThreads: maxThreads ?? this.cpuCount * 1.5,
-			idleTimeout,
+			idleTimeout: idleTimeout ?? 30_000,
 			maxQueue,
 			concurrentTasksPerWorker,
 			resourceLimits,
+		};
+		this.maxTasksBeforeRecycle = maxTasksBeforeRecycle;
+		this.worker = new Piscina(this.piscinaOptions);
+	}
+
+	private async recyclePool() {
+		if (this.recycling) return this.recycling;
+		const old = this.worker;
+		this.worker = new Piscina(this.piscinaOptions);
+		this.completedAtLastRecycle = 0;
+		this.recycling = old.close({ force: false }).finally(() => {
+			this.recycling = undefined;
 		});
+		return this.recycling;
+	}
+
+	private maybeTriggerRecycle() {
+		if (!this.maxTasksBeforeRecycle || this.recycling) return;
+		const delta = this.worker.completed - this.completedAtLastRecycle;
+		if (delta >= this.maxTasksBeforeRecycle) {
+			void this.recyclePool();
+		}
 	}
 
 	private millsToNextDay() {
@@ -135,14 +162,20 @@ export class Signer {
 				ttl: this.millsToNextDay(),
 			});
 		}
-		return (await this.worker.run(
+		const signedHeaders = (await this.worker.run(
 			{ credentials: requestCredentials, request, service, key, date },
 			{ name: "signRequest" },
-		)) as HttpRequest;
+		)) as Record<string, string>;
+		request.headers = { ...(request.headers ?? {}), ...signedHeaders };
+		this.maybeTriggerRecycle();
+		return request;
 	}
 
 	async destroy() {
 		this.keyCache.clear();
+		if (this.recycling) {
+			await this.recycling;
+		}
 		return this.worker.close({ force: true });
 	}
 }

@@ -31,7 +31,7 @@ test("Sign Request", async (t) => {
 			},
 			date,
 		});
-		const request = signRequest({
+		const signedHeaders = signRequest({
 			request: t.context.requestData,
 			service: "foo",
 			credentials: {
@@ -43,8 +43,7 @@ test("Sign Request", async (t) => {
 		});
 
 		t.same(
-			// biome-ignore lint/complexity/useLiteralKeys: leave as is
-			request.headers?.["Authorization"],
+			signedHeaders.Authorization,
 			"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=1e3b24fcfd7655c0c245d99ba7b6b5ca6174eab903ebfbda09ce457af062ad30",
 		);
 	});
@@ -59,7 +58,7 @@ test("Sign Request", async (t) => {
 			},
 			date,
 		});
-		const request = signRequest({
+		const signedHeaders = signRequest({
 			request: {
 				...t.context.requestData,
 				body: "It was the best of times, it was the worst of times",
@@ -74,9 +73,36 @@ test("Sign Request", async (t) => {
 		});
 
 		t.same(
-			// biome-ignore lint/complexity/useLiteralKeys: leave as is
-			request.headers?.["Authorization"],
+			signedHeaders.Authorization,
 			"AWS4-HMAC-SHA256 Credential=foo/20000101/us-bar-1/foo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=cf22a0befff359388f136b158f0b1b43db7b18d2ca65ce4112bc88a16815c4b6",
 		);
+	});
+
+	await t.test("should sign request without headers", async (t) => {
+		const date = new Date("2000-01-01T00:00:00.000Z");
+		const key = generateKey({
+			service: "foo",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
+			date,
+		});
+		const signedHeaders = signRequest({
+			request: {
+				method: "POST",
+				path: "/",
+			},
+			service: "foo",
+			credentials: {
+				...credentials,
+				region: "us-bar-1",
+			},
+			key,
+			date,
+		});
+
+		t.match(signedHeaders.Authorization, /^AWS4-HMAC-SHA256 Credential=foo\//);
+		t.equal(signedHeaders["x-amz-date"], "20000101T000000Z");
 	});
 });
