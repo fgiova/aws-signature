@@ -6,6 +6,7 @@ import { envSchema } from "env-schema";
 import { LRUCache } from "lru-cache";
 import Piscina from "piscina";
 import type { HttpRequest } from "./aws/utils.ts";
+import { generateKey, signRequest } from "./sign_worker.ts";
 
 export type { HttpRequest } from "./aws/utils.ts";
 
@@ -24,6 +25,7 @@ const ConfigSchema = Type.Object({
 	AWS_ACCESS_KEY_ID: Type.Optional(Type.String()),
 	AWS_SECRET_ACCESS_KEY: Type.Optional(Type.String()),
 	AWS_REGION: Type.String({ default: "" }),
+	AWS_SIGNATURE_USE_WORKER_THREADS: Type.Boolean({ default: false }),
 });
 
 export type SignerOptions = {
@@ -32,6 +34,7 @@ export type SignerOptions = {
 		accessKeyId?: string;
 		secretAccessKey?: string;
 	};
+	useWorkerThreads?: boolean;
 	minThreads?: number;
 	maxThreads?: number;
 	idleTimeout?: number;
@@ -44,14 +47,15 @@ export type SignerOptions = {
 };
 
 export class Signer {
-	private worker: Piscina;
+	private worker?: Piscina;
 	private readonly keyCache: LRUCache<string, Buffer>;
 	private readonly credentials: {
 		region: string;
 		accessKeyId: string;
 		secretAccessKey: string;
 	};
-	private readonly piscinaOptions: ConstructorParameters<typeof Piscina>[0];
+	private readonly useWorkerThreads: boolean;
+	private readonly piscinaOptions?: ConstructorParameters<typeof Piscina>[0];
 	private readonly maxTasksBeforeRecycle?: number;
 	private readonly maxPoolAgeMs?: number;
 	private completedAtLastRecycle = 0;
@@ -69,6 +73,7 @@ export class Signer {
 
 	constructor(options: SignerOptions = {}) {
 		const {
+			useWorkerThreads,
 			minThreads,
 			maxThreads,
 			idleTimeout,
@@ -101,6 +106,17 @@ export class Signer {
 			ttl: 1000 * 60 * 60 * 24,
 		});
 
+		this.useWorkerThreads =
+			useWorkerThreads ?? config.AWS_SIGNATURE_USE_WORKER_THREADS;
+
+		if (!this.useWorkerThreads) {
+			return;
+		}
+
+		const defaultResourceLimits: ResourceLimits = {
+			maxOldGenerationSizeMb: 128,
+			maxYoungGenerationSizeMb: 16,
+		};
 		this.piscinaOptions = {
 			filename: path.resolve(__dirname, `./sign_worker.${runEnv.ext}`),
 			execArgv: runEnv.execArgv,
@@ -111,7 +127,7 @@ export class Signer {
 			closeTimeout: closeTimeout ?? 10_000,
 			maxQueue,
 			concurrentTasksPerWorker,
-			resourceLimits,
+			resourceLimits: { ...defaultResourceLimits, ...resourceLimits },
 		};
 		this.maxTasksBeforeRecycle = maxTasksBeforeRecycle ?? 250_000;
 		this.maxPoolAgeMs = maxPoolAgeMs ?? 15 * 60 * 1000;
@@ -121,6 +137,7 @@ export class Signer {
 	private async recyclePool() {
 		if (this.recycling) return this.recycling;
 		const old = this.worker;
+		if (!old || !this.piscinaOptions) return;
 		this.worker = new Piscina(this.piscinaOptions);
 		this.completedAtLastRecycle = 0;
 		this.lastRecycleAt = Date.now();
@@ -147,6 +164,7 @@ export class Signer {
 	): Promise<T> {
 		for (let attempt = 0; attempt < 2; attempt++) {
 			const pool = this.worker;
+			if (!pool) throw new Error("worker pool not initialized");
 			try {
 				return (await pool.run(payload, opts)) as T;
 			} catch (err) {
@@ -166,7 +184,7 @@ export class Signer {
 	}
 
 	private maybeTriggerRecycle() {
-		if (this.recycling) return;
+		if (this.recycling || !this.worker) return;
 		const tasksThreshold = this.maxTasksBeforeRecycle ?? 0;
 		const ageThreshold = this.maxPoolAgeMs ?? 0;
 		if (!tasksThreshold && !ageThreshold) return;
@@ -205,19 +223,29 @@ export class Signer {
 
 		let key = this.keyCache.get(keyId);
 		if (!key) {
-			key = await this.runOnPool<Buffer>({
-				credentials: requestCredentials,
-				service,
-				date,
-			});
+			key = this.useWorkerThreads
+				? await this.runOnPool<Buffer>({
+						credentials: requestCredentials,
+						service,
+						date,
+					})
+				: generateKey({ credentials: requestCredentials, service, date });
 			this.keyCache.set(keyId, key, {
 				ttl: this.millsToNextDay(),
 			});
 		}
-		const signedHeaders = await this.runOnPool<Record<string, string>>(
-			{ credentials: requestCredentials, request, service, key, date },
-			{ name: "signRequest" },
-		);
+		const signedHeaders = this.useWorkerThreads
+			? await this.runOnPool<Record<string, string>>(
+					{ credentials: requestCredentials, request, service, key, date },
+					{ name: "signRequest" },
+				)
+			: signRequest({
+					credentials: requestCredentials,
+					request,
+					service,
+					key,
+					date,
+				});
 		request.headers = { ...(request.headers ?? {}), ...signedHeaders };
 		this.maybeTriggerRecycle();
 		return request;
@@ -225,6 +253,7 @@ export class Signer {
 
 	async destroy() {
 		this.keyCache.clear();
+		if (!this.useWorkerThreads || !this.worker) return;
 		if (this.recycling) {
 			await this.recycling;
 		}
