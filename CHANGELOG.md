@@ -1,3 +1,49 @@
+# [5.0.0](https://github.com/fgiova/aws-signature/compare/4.2.0...5.0.0) (2026-05-08)
+
+
+* feat!: default to single-thread signing, opt-in worker pool ([09c4183](https://github.com/fgiova/aws-signature/commit/09c4183b2ba8de818071d0b875715dfcde638ef5))
+
+
+### Features
+
+* bound recycle window and add age-based pool rotation ([50c649c](https://github.com/fgiova/aws-signature/commit/50c649c167f5f5231912a9a32a0fbd62ecd0e799))
+
+
+### Performance Improvements
+
+* replace ts-node with native Node strip-types in workers ([cea802c](https://github.com/fgiova/aws-signature/commit/cea802cfb015d530d79a3ebe4dc7755337713e7b))
+
+
+### BREAKING CHANGES
+
+* `new Signer()` now signs on the main thread by default.
+To restore the previous worker-pool behavior, pass
+`new Signer({ useWorkerThreads: true })` or set the
+`USE_WORKER_THREADS=true` env variable.
+
+- Add `SignerOptions.useWorkerThreads` (default `false`) and
+  `USE_WORKER_THREADS` env var (read via env-schema).
+- When `false`, skip Piscina entirely: import and call `generateKey` /
+  `signRequest` from `sign_worker` directly. All worker-only options
+  (`minThreads`, `maxThreads`, `idleTimeout`, `maxQueue`,
+  `concurrentTasksPerWorker`, `resourceLimits`, `maxTasksBeforeRecycle`,
+  `maxPoolAgeMs`, `closeTimeout`) are ignored, and `destroy()` resolves
+  immediately without closing a pool.
+- Add a default `resourceLimits` cap of `{ maxOldGenerationSizeMb: 128,
+  maxYoungGenerationSizeMb: 16 }` for worker mode, with shallow merge so
+  callers can override individual fields. Bounds RSS growth between
+  recycles (~−20 MB peak in benchmarks) and acts as a safety net against
+  runaway allocations.
+- Test parity case forces `useWorkerThreads: true` for the worker
+  signer so it remains a real worker-vs-single-thread comparison after
+  the default flip.
+- Benchmark `volume.js` / `run-volume.js` add a
+  `fgiova-single-thread` scenario, and the worker-mode scenarios
+  explicitly set `useWorkerThreads: true` so the table compares like
+  with like.
+- README documents the new default, the env var, the tradeoffs, and the
+  measured numbers.
+
 # [4.2.0](https://github.com/fgiova/aws-signature/compare/4.1.0...4.2.0) (2026-05-07)
 
 
