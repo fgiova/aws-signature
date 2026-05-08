@@ -5,16 +5,18 @@ import { type Static, Type } from "@sinclair/typebox";
 import { envSchema } from "env-schema";
 import { LRUCache } from "lru-cache";
 import Piscina from "piscina";
-import type { HttpRequest } from "./aws/utils";
+import type { HttpRequest } from "./aws/utils.ts";
 
-export type { HttpRequest } from "./aws/utils";
+export type { HttpRequest } from "./aws/utils.ts";
 
 /* c8 ignore start */
 const isTS = path.resolve(__filename).endsWith(".ts");
 const isMjs = path.resolve(__filename).endsWith(".mjs");
 const runEnv = {
 	ext: isTS ? "ts" : isMjs ? "mjs" : "js",
-	execArgv: isTS ? ["-r", "ts-node/register"] : undefined,
+	execArgv: isTS
+		? ["--experimental-strip-types", "--no-warnings=ExperimentalWarning"]
+		: undefined,
 };
 /* c8 ignore end */
 

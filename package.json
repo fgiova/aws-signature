@@ -25,10 +25,10 @@
 		"lint": "biome ci ./src ./test",
 		"fix": "biome check --write ./src ./test",
 		"benchmark": "npm run build && node --max-old-space-size=4096 benchmark/index.js",
-		"test": "tap",
-		"test:esm": "npm run build && tap test-esm/",
-		"test:debug": "tap -T -O",
-		"test:coverage": "tap --coverage-report=lcovonly --coverage-report=text"
+		"test": "TS_NODE_PROJECT=tsconfig.test.json tap",
+		"test:esm": "npm run build && npm run test test-esm/",
+		"test:debug": "TS_NODE_PROJECT=tsconfig.test.json tap -T -O",
+		"test:coverage": "TS_NODE_PROJECT=tsconfig.test.json tap --coverage-report=lcovonly --coverage-report=text"
 	},
 	"repository": {
 		"type": "git",
@@ -75,7 +75,7 @@
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"microtime": "^3.1.1",
 		"semantic-release": "^25.0.3",
-		"tap": "^21.1.0",
+		"tap": "^21.7.2",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.8.2"
 	}

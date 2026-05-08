@@ -5,14 +5,14 @@ import {
 	AMZ_DATE_HEADER,
 	KEY_TYPE_IDENTIFIER,
 	SHA256_HEADER,
-} from "./aws/constants";
-import { createCanonicalRequest } from "./aws/createCanonicalRequest";
+} from "./aws/constants.ts";
+import { createCanonicalRequest } from "./aws/createCanonicalRequest.ts";
 import {
 	getCanonicalHeaderList,
 	getCanonicalHeaders,
-} from "./aws/getCanonicalHeaders";
-import { getPayloadHash } from "./aws/getPayloadHash";
-import { formatDate, type HttpRequest, toUint8Array } from "./aws/utils";
+} from "./aws/getCanonicalHeaders.ts";
+import { getPayloadHash } from "./aws/getPayloadHash.ts";
+import { formatDate, type HttpRequest, toUint8Array } from "./aws/utils.ts";
 
 type AwsCredentials = {
 	region: string;
