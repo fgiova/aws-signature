@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { SHA256_HEADER, UNSIGNED_PAYLOAD } from "./constants";
-import { type HttpRequest, isArrayBuffer, toUint8Array } from "./utils";
+import { SHA256_HEADER, UNSIGNED_PAYLOAD } from "./constants.ts";
+import { type HttpRequest, isArrayBuffer, toUint8Array } from "./utils.ts";
 
 /**
  * @private

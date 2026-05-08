@@ -1,5 +1,5 @@
-import { SIGNATURE_HEADER } from "./constants";
-import { escapeUri, type HttpRequest } from "./utils";
+import { SIGNATURE_HEADER } from "./constants.ts";
+import { escapeUri, type HttpRequest } from "./utils.ts";
 export function getCanonicalQuery({ query = {} }: HttpRequest) {
 	const keys: string[] = [];
 	const serialized: Record<string, string> = {};

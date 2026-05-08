@@ -7,6 +7,8 @@
     "outDir": "dist",
     "declaration": true,
     "rootDir": "src",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "typeRoots": [
       "./node_modules/@types",
     ]

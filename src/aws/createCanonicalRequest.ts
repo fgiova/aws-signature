@@ -1,6 +1,6 @@
-import { getCanonicalQuery } from "./getCanonicalQuery";
-import { getPayloadHash } from "./getPayloadHash";
-import type { HttpRequest } from "./utils";
+import { getCanonicalQuery } from "./getCanonicalQuery.ts";
+import { getPayloadHash } from "./getPayloadHash.ts";
+import type { HttpRequest } from "./utils.ts";
 
 function getCanonicalPath({ path }: HttpRequest, isS3: boolean) {
 	if (!isS3) {

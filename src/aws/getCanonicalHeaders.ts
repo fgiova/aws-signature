@@ -2,8 +2,8 @@ import {
 	ALWAYS_UNSIGNABLE_HEADERS,
 	PROXY_HEADER_PATTERN,
 	SEC_HEADER_PATTERN,
-} from "./constants";
-import type { HttpRequest } from "./utils";
+} from "./constants.ts";
+import type { HttpRequest } from "./utils.ts";
 
 /**
  * @private
