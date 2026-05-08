@@ -39,6 +39,8 @@ export type SignerOptions = {
 	concurrentTasksPerWorker?: number;
 	resourceLimits?: ResourceLimits;
 	maxTasksBeforeRecycle?: number;
+	maxPoolAgeMs?: number;
+	closeTimeout?: number;
 };
 
 export class Signer {
@@ -51,7 +53,9 @@ export class Signer {
 	};
 	private readonly piscinaOptions: ConstructorParameters<typeof Piscina>[0];
 	private readonly maxTasksBeforeRecycle?: number;
+	private readonly maxPoolAgeMs?: number;
 	private completedAtLastRecycle = 0;
+	private lastRecycleAt = Date.now();
 	private recycling?: Promise<void>;
 
 	cpuCount: number = (() => {
@@ -72,6 +76,8 @@ export class Signer {
 			concurrentTasksPerWorker,
 			resourceLimits,
 			maxTasksBeforeRecycle,
+			maxPoolAgeMs,
+			closeTimeout,
 			credentials: credentialsOptions,
 		} = options;
 
@@ -100,13 +106,15 @@ export class Signer {
 			execArgv: runEnv.execArgv,
 			name: "generateKey",
 			minThreads: minThreads ?? Math.max(this.cpuCount / 2, 1),
-			maxThreads: maxThreads ?? this.cpuCount * 1.5,
+			maxThreads: maxThreads ?? this.cpuCount,
 			idleTimeout: idleTimeout ?? 30_000,
+			closeTimeout: closeTimeout ?? 10_000,
 			maxQueue,
 			concurrentTasksPerWorker,
 			resourceLimits,
 		};
 		this.maxTasksBeforeRecycle = maxTasksBeforeRecycle ?? 250_000;
+		this.maxPoolAgeMs = maxPoolAgeMs ?? 15 * 60 * 1000;
 		this.worker = new Piscina(this.piscinaOptions);
 	}
 
@@ -115,16 +123,58 @@ export class Signer {
 		const old = this.worker;
 		this.worker = new Piscina(this.piscinaOptions);
 		this.completedAtLastRecycle = 0;
+		this.lastRecycleAt = Date.now();
+		// In-flight tasks may resolve after close() destroys workers,
+		// triggering "Unexpected message from Worker" errors on the closed
+		// pool. Swallow them: callers retry via runOnPool.
+		old.on("error", () => {});
 		this.recycling = old.close({ force: false }).finally(() => {
 			this.recycling = undefined;
 		});
 		return this.recycling;
 	}
 
+	private isRecycleTerminationError(err: unknown): boolean {
+		if (!(err instanceof Error)) return false;
+		return /ThreadTermination|Terminating worker thread|pool is closed/i.test(
+			err.message,
+		);
+	}
+
+	private async runOnPool<T>(
+		payload: unknown,
+		opts?: { name?: string },
+	): Promise<T> {
+		for (let attempt = 0; attempt < 2; attempt++) {
+			const pool = this.worker;
+			try {
+				return (await pool.run(payload, opts)) as T;
+			} catch (err) {
+				// Retry only if recycle replaced the pool under us.
+				if (
+					attempt === 0 &&
+					this.worker !== pool &&
+					this.isRecycleTerminationError(err)
+				) {
+					continue;
+				}
+				throw err;
+			}
+		}
+		/* c8 ignore next */
+		throw new Error("unreachable");
+	}
+
 	private maybeTriggerRecycle() {
-		if (!this.maxTasksBeforeRecycle || this.recycling) return;
+		if (this.recycling) return;
+		const tasksThreshold = this.maxTasksBeforeRecycle ?? 0;
+		const ageThreshold = this.maxPoolAgeMs ?? 0;
+		if (!tasksThreshold && !ageThreshold) return;
 		const delta = this.worker.completed - this.completedAtLastRecycle;
-		if (delta >= this.maxTasksBeforeRecycle) {
+		const elapsed = Date.now() - this.lastRecycleAt;
+		const byTasks = tasksThreshold > 0 && delta >= tasksThreshold;
+		const byAge = ageThreshold > 0 && elapsed >= ageThreshold;
+		if (byTasks || byAge) {
 			void this.recyclePool();
 		}
 	}
@@ -155,19 +205,19 @@ export class Signer {
 
 		let key = this.keyCache.get(keyId);
 		if (!key) {
-			key = (await this.worker.run({
+			key = await this.runOnPool<Buffer>({
 				credentials: requestCredentials,
 				service,
 				date,
-			})) as Buffer;
+			});
 			this.keyCache.set(keyId, key, {
 				ttl: this.millsToNextDay(),
 			});
 		}
-		const signedHeaders = (await this.worker.run(
+		const signedHeaders = await this.runOnPool<Record<string, string>>(
 			{ credentials: requestCredentials, request, service, key, date },
 			{ name: "signRequest" },
-		)) as Record<string, string>;
+		);
 		request.headers = { ...(request.headers ?? {}), ...signedHeaders };
 		this.maybeTriggerRecycle();
 		return request;
